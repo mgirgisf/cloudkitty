@@ -83,7 +83,7 @@ function cleanup_cloudkitty {
     # Clean up dirs
     rm -rf $CLOUDKITTY_CONF_DIR/*
     rm -rf $CLOUDKITTY_OUTPUT_BASEPATH/*
-    for i in $(find $CLOUDKITTY_ENABLED_DIR -iname '_[0-9]*.py' -printf '%f\n'); do
+    for i in $(find $CLOUDKITTY_HORIZON_ENABLED_DIR -iname '_[0-9].*py' -printf '%f\n'); do
         rm -f "${CLOUDKITTY_HORIZON_ENABLED_DIR}/$i"
     done
     if [ ${CLOUDKITTY_USE_UWSGI,,} == 'true' ]; then
