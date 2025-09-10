@@ -378,8 +378,9 @@ function install_loki_ubuntu {
 
     wget -O ${loki_tmp} ${loki_url}
     unzip -o ${loki_tmp} -d /tmp
-    sudo mv /tmp/loki-linux-amd64 /usr/local/bin/loki
-    sudo chmod +x /usr/local/bin/loki
+    sudo mv /tmp/loki-linux-amd64 $CLOUDKITTY_BIN_DIR/loki
+    sudo chmod +x $CLOUDKITTY_BIN_DIR/loki
+
 }
 
 function install_loki_fedora {
@@ -390,8 +391,8 @@ function install_loki_fedora {
 
     wget -O ${loki_tmp} ${loki_url}
     unzip -o ${loki_tmp} -d /tmp
-    sudo mv /tmp/loki-linux-amd64 /usr/local/bin/loki
-    sudo chmod +x /usr/local/bin/loki
+    sudo mv /tmp/loki-linux-amd64 $CLOUDKITTY_BIN_DIR/loki
+    sudo chmod +x $CLOUDKITTY_BIN_DIR/loki
 }
 
 function install_loki {
@@ -402,9 +403,20 @@ function install_loki {
     else
         die $LINENO "Distribution must be Debian or Fedora-based"
     fi
-    # Start Loki service
-    run_process loki "/usr/local/bin/loki -config.file=$CLOUDKITTY_DIR/devstack/files/loki-config.yaml"
+    start_loki
 }
+
+function start_loki {
+    LOKI_SYSTEMD_SERVICE="devstack@loki.service"
+    loki_command="$CLOUDKITTY_BIN_DIR/loki"
+    loki_command+=" --config.file=${CLOUDKITTY_DIR}/devstack/files/loki-config.yaml"
+
+    write_user_unit_file $LOKI_SYSTEMD_SERVICE "$loki_command" "" "$STACK_USER"
+
+    enable_service $LOKI_SYSTEMD_SERVICE
+    start_service $LOKI_SYSTEMD_SERVICE
+}
+
 
 # install_cloudkitty() - Collect source and prepare
 function install_cloudkitty {
@@ -418,7 +430,7 @@ function install_cloudkitty {
         install_elasticsearch
     elif [ $CLOUDKITTY_STORAGE_BACKEND == 'opensearch' ]; then
         install_opensearch
-    elif [ $CLOUDKITTY_STORAGE_BACKEND == "loki" ]; then
+    elif [ $CLOUDKITTY_STORAGE_BACKEND == 'loki' ]; then
         install_loki
     fi
     if [ ${CLOUDKITTY_USE_UWSGI,,} == 'true' ]; then
